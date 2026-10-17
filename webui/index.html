@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>主旋律提取器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="mx-page">
+  <div class="mx-window">
+    <div class="mx-titlebar">
+      <span class="mx-app-ico">♪</span>
+      <span class="mx-tb-title">主旋律提取器</span>
+      <span class="mx-tb-ver" id="tbVer">v1.0</span>
+      <span class="mx-spacer"></span>
+      <span class="mx-pill mx-pill-info">本地推理 · 无需联网</span>
+      <span class="mx-pill" id="pillEp">ONNX Runtime · 检测中…</span>
+      <span class="mx-pill mx-pill-warn" id="pillDemo" hidden>演示模式（未连接本地后端）</span>
+    </div>
+
+    <div class="mx-body">
+      <!-- ============ 左栏：设置 ============ -->
+      <div class="mx-left">
+        <div class="mx-panel">
+          <div class="mx-cap">输入音频</div>
+          <div id="fileEmpty" class="mx-drop">
+            <div class="mx-sm mx-ter">选择音频文件开始</div>
+            <button class="mx-btn mx-btn-outline mx-btn-sm" id="btnPick">选择文件</button>
+            <div class="mx-sm mx-quat">支持 flac / wav / mp3 / m4a 等</div>
+          </div>
+          <div id="fileInfo" hidden>
+            <div class="mx-file">
+              <div class="mx-file-ico">♪</div>
+              <div class="mx-file-body">
+                <div class="mx-file-name" id="fileName"></div>
+                <div class="mx-file-meta" id="fileMeta"></div>
+              </div>
+            </div>
+            <div class="mx-row mx-mt">
+              <button class="mx-btn mx-btn-secondary mx-btn-sm" id="btnChange">更换文件</button>
+              <button class="mx-btn mx-btn-ghost mx-btn-sm" id="btnClear">清空</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mx-panel">
+          <div class="mx-cap">处理选项</div>
+          <div class="mx-switch">
+            <input type="checkbox" id="swDemucs">
+            <div>
+              <div class="mx-sw-title">人声分离（demucs）</div>
+              <span class="mx-sw-desc">先分离人声再提旋律；关闭则直接从混音提取（更快，准确率可能略降）</span>
+            </div>
+          </div>
+          <div class="mx-switch" style="margin-top:12px">
+            <input type="checkbox" id="swGpu">
+            <div>
+              <div class="mx-sw-title">GPU 加速（DirectML）</div>
+              <span class="mx-sw-desc">自动适配 N / A / Intel 显卡；不可用时静默回退 CPU</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mx-panel">
+          <div class="mx-cap">频率倍率（输出整体升降调）</div>
+          <div class="mx-row" style="justify-content:space-between;align-items:flex-end">
+            <span class="mx-big" id="ratioLabel">×1.00</span>
+            <span class="mx-sm mx-ter" id="shiftLabel">+0.00 半音 / +0 音分</span>
+          </div>
+          <input class="mx-range" type="range" min="-2" max="2" step="0.01" value="0" id="ratioSlider">
+          <div class="mx-row" id="presets"></div>
+          <div class="mx-row" style="margin-top:10px">
+            <span class="mx-sm mx-ter">自定义 ×</span>
+            <input class="mx-input" type="number" step="0.01" style="width:80px" id="ratioInput">
+            <span class="mx-sm mx-quat">0.1 – 10</span>
+          </div>
+          <span class="mx-sm mx-ter mx-blk" style="margin-top:8px" id="a4Label"></span>
+        </div>
+
+        <div class="mx-panel">
+          <div class="mx-cap">输出设置</div>
+          <div class="mx-row">
+            <input class="mx-input" style="flex:1;min-width:0" id="outDir">
+            <button class="mx-btn mx-btn-secondary mx-btn-sm" id="btnBrowse">浏览</button>
+          </div>
+          <div style="margin-top:10px"><label class="mx-check"><input type="checkbox" id="ckMidi">导出 MIDI（.mid）</label></div>
+          <div style="margin-top:8px"><label class="mx-check"><input type="checkbox" id="ckTxt">导出 TXT（.txt）</label></div>
+          <span class="mx-sm mx-quat mx-blk" style="margin-top:8px">命名：源文件名_melody.mid / .txt</span>
+        </div>
+      </div>
+
+      <!-- ============ 右区 ============ -->
+      <div class="mx-main">
+        <div class="mx-panel">
+          <div class="mx-row">
+            <button class="mx-btn mx-btn-primary" id="btnRun" disabled>开始处理</button>
+            <button class="mx-btn mx-btn-secondary" id="btnOpenOut">打开输出目录</button>
+            <span class="mx-spacer"></span>
+            <span class="mx-sm mx-quat" id="runHint">选择音频后开始处理</span>
+          </div>
+          <div class="mx-stages" id="stages"></div>
+          <div class="mx-progress"><div class="mx-progress-fill" id="pbar"></div></div>
+        </div>
+
+        <div class="mx-panel">
+          <div class="mx-cap">试听</div>
+          <div class="mx-row">
+            <button class="mx-btn mx-btn-secondary mx-btn-sm" id="btnPlaySrc" disabled>播放</button>
+            <div class="mx-wave" id="waveSrc"></div>
+            <span class="mx-sm mx-ter" style="flex:0 0 auto" id="lblSrc">原曲 · --:--</span>
+          </div>
+          <div class="mx-row" style="margin-top:10px">
+            <button class="mx-btn mx-btn-secondary mx-btn-sm" id="btnPlayMel" disabled>播放</button>
+            <div class="mx-wave" id="waveMel"></div>
+            <span class="mx-sm mx-ter" style="flex:0 0 auto" id="lblMel">旋律试听 · --:--</span>
+          </div>
+          <span class="mx-sm mx-quat mx-blk" style="margin-top:8px">旋律试听 = 软件内合成（正弦 + 谐波包络），改倍率后立即生效</span>
+        </div>
+
+        <div class="mx-panel">
+          <div class="mx-cap">钢琴卷帘</div>
+          <div class="mx-roll" id="roll" style="height:170px">
+            <div class="mx-roll-empty" id="rollEmpty">处理完成后显示提取的音符</div>
+          </div>
+          <span class="mx-sm mx-quat mx-blk" style="margin-top:8px" id="rollCap">横轴 = 时间，纵向随倍率整体平移；悬停单音可见音名 / 频率 / 时长</span>
+        </div>
+
+        <div class="mx-panel">
+          <div class="mx-row">
+            <span style="font-weight:600;font-size:12px">结果与导出</span>
+            <span class="mx-spacer"></span>
+            <span class="mx-sm mx-quat" id="resNote"></span>
+          </div>
+          <div class="mx-stats">
+            <div><div class="mx-stat-label">提取音符</div><div class="mx-stat-value" id="stNotes">—</div><div class="mx-stat-desc" id="stNotesDesc"></div></div>
+            <div><div class="mx-stat-label" id="stRangeLbl">音域</div><div class="mx-stat-value" id="stRange">—</div><div class="mx-stat-desc" id="stRangeDesc"></div></div>
+            <div><div class="mx-stat-label">处理耗时</div><div class="mx-stat-value" id="stTime">—</div><div class="mx-stat-desc" id="stTimeDesc"></div></div>
+          </div>
+          <div id="midiBox" style="margin-top:12px" hidden>
+            <div class="mx-cap" style="margin-bottom:4px">MIDI 音符预览（前 6 个）</div>
+            <span class="mx-sm mx-blk" id="midiNames"></span>
+            <span class="mx-sm mx-ter mx-blk" style="margin-top:4px" id="midiExample"></span>
+          </div>
+          <div id="txtBox" style="margin-top:12px" hidden>
+            <div class="mx-cap" style="margin-bottom:4px">TXT 预览（自动应用 <span id="txtRatioLbl">×1.00</span>）</div>
+            <div class="mx-pre" id="txtPrev"></div>
+            <span class="mx-sm mx-ter mx-blk" style="margin-top:4px" id="txtMeta"></span>
+          </div>
+          <div class="mx-row" style="margin-top:12px">
+            <button class="mx-btn mx-btn-primary" id="btnExpMidi" disabled>导出 MIDI</button>
+            <button class="mx-btn mx-btn-secondary" id="btnExpTxt" disabled>导出 TXT</button>
+            <button class="mx-btn mx-btn-ghost" id="btnOpenOut2" disabled>打开输出文件夹</button>
+            <span class="mx-spacer"></span>
+            <span class="mx-sm mx-quat" id="expHint">处理完成后可用</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mx-toast" id="toast" hidden></div>
+<audio id="audioSrc" preload="metadata"></audio>
+<script src="app.js"></script>
+</body>
+</html>

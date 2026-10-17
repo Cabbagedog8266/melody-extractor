@@ -1,0 +1,14 @@
+# Windows 10/11 x64, Python 3.12
+# PyPI's Windows torch wheel is CPU-only; demucs runs on CPU and the melody
+# model uses ONNX Runtime DirectML for GPU acceleration.
+numpy==2.5.3
+onnxruntime-directml==1.24.4
+torch==2.14.1
+demucs==4.1.0
+av==19.0.1
+pywebview==6.2.1
+pythonnet==3.2.1
+clr-loader==0.3.1
+soxr==1.1.0
+mido==1.3.3
+pretty_midi==0.2.11.post0

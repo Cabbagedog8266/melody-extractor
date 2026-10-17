@@ -1,0 +1,42 @@
+# model weights: fetch with scripts/download_models.py
+models/*.onnx
+models/**/*.th
+models/**/*.pt
+models/**/*.pth
+models/**/*.ckpt
+models/**/*.bin
+
+# Python / build
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+build/
+dist/
+pack/build/
+pack/dist/
+pack/installer/
+*.log
+
+# user audio, datasets, labels and outputs
+data/
+datasets/
+runs/
+outputs/
+*.npz
+*.npy
+*.parquet
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.ogg
+*.opus
+*.mid
+*.midi
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
