@@ -1,4 +1,4 @@
-# Melody Extractor
+# MelodyExtractor: A Deep-Learning-Based Main-Melody Extractor for Piezoelectric Buzzers
 
 A local Windows desktop app that extracts the **main melody** from a song and
 exports a monophonic MIDI file plus a compact pitch/duration TXT file.

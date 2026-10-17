@@ -1,4 +1,4 @@
-# 主旋律提取器
+# MelodyExtractor: A Deep-Learning-Based Main-Melody Extractor for Piezoelectric Buzzers
 
 一个完全本地运行的 Windows 桌面应用：从歌曲中提取**主旋律**，导出单音 MIDI
 和紧凑的「频率 / 音长」TXT 文件。
