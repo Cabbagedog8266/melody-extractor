@@ -43,6 +43,10 @@ smoothing; the stable monophonic output relies on the model's own temporal
 modeling, and only lightweight note segmentation (median filtering, gap closing
 and a minimum note length) turns frame decisions into notes.
 
+> **Note:** This project is experimental. The aligned dataset is small, and
+> extraction quality is poor on some songs; treat the output as a starting
+> point rather than a finished transcription.
+
 ## Highlights
 
 - **Fully local** — audio never leaves the machine; no account, API key or
