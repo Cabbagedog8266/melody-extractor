@@ -133,7 +133,8 @@ pip install -r requirements-build.txt
 python scripts/download_models.py
 pyinstaller pack/melody_extractor.spec --noconfirm --clean ^
   --distpath pack/dist --workpath pack/build
-iscc pack/installer.iss
+cd pack
+iscc installer.iss
 ```
 
 The PyInstaller bundle is written to `pack/dist/MelodyExtractor/`; the installer

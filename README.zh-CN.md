@@ -118,7 +118,8 @@ pip install -r requirements-build.txt
 python scripts/download_models.py
 pyinstaller pack/melody_extractor.spec --noconfirm --clean ^
   --distpath pack/dist --workpath pack/build
-iscc pack/installer.iss
+cd pack
+iscc installer.iss
 ```
 
 PyInstaller 产物在 `pack/dist/MelodyExtractor/`，安装包在
