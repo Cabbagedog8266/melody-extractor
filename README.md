@@ -11,6 +11,38 @@ English | [简体中文](README.zh-CN.md)
 > packaging scripts. Model weights and the Windows installer are distributed as
 > release assets; the training pipeline and datasets are not included.
 
+## Why this model exists
+
+A passive piezoelectric buzzer has a single diaphragm driven by one excitation
+signal, so it can emit only one tone at a time; moreover, when the excitation
+frequency steps, the diaphragm undergoes a mechanical transient response and
+rings, which is perceived as noise. To make such a buzzer play a usable melody,
+one must therefore first extract a stable single monophonic line from the
+polyphonic audio — a task that has traditionally relied on manual transcription,
+which is costly and hard to scale.
+
+Existing automatic methods each fall short in some way. Monophonic pitch
+estimators such as YIN and CREPE, as well as the Melodia predominant-melody
+algorithm in Essentia, perform well on single-line input, but under polyphony
+their frame-wise pitch estimates tend to jump among several concurrent voices,
+so the estimation confidence stays consistently low; adding post-processing
+constraints such as smoothing and continuity brings only limited improvement.
+Viterbi-decoding and CNN-based methods for polyphonic melody, in turn, mostly
+build on hand-crafted pitch-salience features and model only local temporal
+context, so they struggle to capture the long-range structure of a melody and
+cannot fundamentally resolve cross-voice interference.
+
+Against this backdrop, and given the scarcity of aligned polyphonic-melody
+datasets, we collected and built an aligned dataset from the harmonica community
+of the game Delta Force, and propose MelodyExtractor: it employs a MERT
+pre-trained encoder to extract music representations, a bidirectional GRU to
+model temporal context, and chord detection as an auxiliary task that supplies
+harmonic context, forming joint multi-task supervision with melody prediction and
+trained end-to-end on the aligned data. At inference it applies no Viterbi/HMM
+smoothing; the stable monophonic output relies on the model's own temporal
+modeling, and only lightweight note segmentation (median filtering, gap closing
+and a minimum note length) turns frame decisions into notes.
+
 ## Highlights
 
 - **Fully local** — audio never leaves the machine; no account, API key or
